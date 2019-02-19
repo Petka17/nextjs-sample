@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "lib": ["dom", "es2017"],
+    "allowJs": false,
+    "jsx": "react",
+    "sourceMap": true,
+    "noEmit": true,
+    "removeComments": false,
+
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": { "shared/*": ["shared/*"] },
+
+    "strictPropertyInitialization": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true
+  }
+}
