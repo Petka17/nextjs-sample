@@ -15,5 +15,4 @@ Add material ui components
 # Open questions
 
 Why autofocus property doesn't work on run-time even though tests are passing?  
-How to make proxy api requests using next?  
-How to fix jest-axe for input form
+How to make proxy api requests using next?

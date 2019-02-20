@@ -1,7 +1,7 @@
 import React from "react";
 import * as auth from "shared/contexts/auth";
 
-function layout(Component: typeof React.Component) {
+function layout(Component: typeof React.Component | React.FC) {
   return () => (
     <auth.Provider>
       <Component />

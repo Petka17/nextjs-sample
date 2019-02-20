@@ -809,7 +809,7 @@
     "@types/react" "*"
     "@types/react-loadable" "*"
 
-"@types/next@^8.0.1":
+"@types/next@*", "@types/next@^8.0.1":
   version "8.0.1"
   resolved "https://registry.yarnpkg.com/@types/next/-/next-8.0.1.tgz#d19731594215e09a8db1ca0b8862d5308707d46a"
   integrity sha512-BYfeuN7Uy+kuCODrVRfLurWEoU0AR9Esfct18OeJMIqAfmk4d8SH47b7FxrvdeZiRDvKfpD4Ft/Z7ZGI6ErvDg==
@@ -894,6 +894,13 @@
     "@types/tapable" "*"
     "@types/uglify-js" "*"
     source-map "^0.6.0"
+
+"@types/zeit__next-typescript@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@types/zeit__next-typescript/-/zeit__next-typescript-0.1.2.tgz#ab20d21b3d0843ab91af24802fbe502d259d62df"
+  integrity sha512-tsd0E/t2P2jyRLVG1+RE8ZppuSCTqJZv/ewOx4j5ZFsa6lHsYqQPSaK3IkEn2ayz/40BWiARUQvVOHK30yKo8Q==
+  dependencies:
+    "@types/next" "*"
 
 "@webassemblyjs/ast@1.7.11":
   version "1.7.11"

@@ -1,6 +1,5 @@
 import React from "react";
 import { fireEvent, render } from "react-testing-library";
-// import { axe } from "jest-axe";
 
 import SigninPage from "../signin";
 import { requestCode } from "shared/api/auth";
