@@ -1,4 +1,4 @@
-function requestCode(someArg) {
+function requestCode(someArg: string) {
   console.log(someArg);
 }
 

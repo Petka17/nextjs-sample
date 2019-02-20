@@ -1,4 +1,4 @@
-function clearPhone(phone) {
+function clearPhone(phone: string) {
   return phone.replace(/\D/g, "");
 }
 

@@ -18,7 +18,7 @@ const defaultAuth: AuthInterface = {
 
 export const Context = React.createContext<AuthInterface>(defaultAuth);
 
-export function Provider({ children }) {
+export function Provider({ children }: { children: React.ReactNode }) {
   const [phone, setPhone] = React.useState(defaultAuth.phone);
 
   const setClearPhone = (phone: string) => {
@@ -27,7 +27,7 @@ export function Provider({ children }) {
 
   const startCodeRequest = () => {
     requestCode(phone);
-    console.log(`TODO: make real request with ${phone}`);
+    console.info(`TODO: make real request with ${phone}`);
   };
 
   const canStartCodeRequest = phone.length === 11;
