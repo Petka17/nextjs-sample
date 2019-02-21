@@ -1,13 +1,14 @@
 import React from "react";
 import layout from "shared/components/layout";
-import * as auth from "shared/contexts/auth";
+import * as auth from "shared/state/auth";
 
 function SigninPage() {
   const {
     canStartCodeRequest,
     phone,
     setPhone,
-    startCodeRequest
+    startCodeRequest,
+    errorMessage
   } = auth.getState();
 
   const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +34,7 @@ function SigninPage() {
       <button type="submit" disabled={!canStartCodeRequest}>
         Запросить код
       </button>
+      {errorMessage !== "" ? <div>{errorMessage}</div> : null}
     </form>
   );
 }

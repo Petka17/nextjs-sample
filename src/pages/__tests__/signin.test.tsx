@@ -1,12 +1,8 @@
 import React from "react";
-import { fireEvent, render } from "react-testing-library";
+import { fireEvent, render, wait } from "react-testing-library";
 
 import SigninPage from "../signin";
 import { requestCode } from "shared/api/auth";
-
-const mockRequestCode: jest.Mock<typeof Function> = requestCode as jest.Mock<
-  typeof Function
->;
 
 const renderPage = (phone = "") => {
   const utils = render(<SigninPage />);
@@ -29,19 +25,23 @@ const renderPage = (phone = "") => {
 
 jest.mock("shared/api/auth", () => {
   return {
-    requestCode: jest.fn(() => null)
+    requestCode: jest.fn(
+      () =>
+        new Promise((resolve, _) => {
+          let wait = setTimeout(() => {
+            clearTimeout(wait);
+            resolve("auth_token");
+          }, 500);
+        })
+    )
   };
 });
+
+const mockRequestCode: jest.Mock = requestCode as jest.Mock;
 
 afterEach(() => {
   mockRequestCode.mockClear();
 });
-
-// test("check for accessibility", async () => {
-//   const { container } = renderPage();
-//   const results = await axe(container.innerHTML);
-//   expect(results).toHaveNoViolations();
-// });
 
 test("Signin page should have phone input and submit button, and input should be focused", () => {
   const { phoneInput, getCodeButton } = renderPage();
@@ -76,7 +76,7 @@ test("Signin page submit button should become enabled only if user fill correct 
   expect(getCodeButton).toBeEnabled();
 });
 
-test("When submit button is clicked, code request should fire", () => {
+test("When submit button is clicked, code request should fire and button should become disabled", async () => {
   const phone = "75551112233";
   const { getCodeButton } = renderPage(phone);
 
@@ -86,8 +86,20 @@ test("When submit button is clicked, code request should fire", () => {
 
   expect(mockRequestCode).toBeCalledTimes(1);
   expect(mockRequestCode).toBeCalledWith(phone);
+
+  expect(getCodeButton).toBeDisabled();
+
+  await wait(() => expect(getCodeButton).toBeEnabled(), { timeout: 600 });
 });
 
-test("If there are any errors in requesting code, the should be shown under the input", () => {
-  // TODO: Simulate api error
+test("If there are any errors in requesting code, the should be shown under the input", async () => {
+  const errorMessage = "error";
+  const { getCodeButton, getByText, queryByText } = renderPage("75551112233");
+
+  mockRequestCode.mockReturnValueOnce(Promise.reject(errorMessage));
+  fireEvent.click(getCodeButton);
+  wait(() => expect(getByText(errorMessage)).toBeInTheDocument());
+
+  fireEvent.click(getCodeButton);
+  expect(queryByText(errorMessage)).toBeNull();
 });
