@@ -1,4 +1,5 @@
 import express from "express";
+import proxy from "express-http-proxy";
 import next from "next";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -10,11 +11,14 @@ nextApp
   .then(() => {
     const server = express();
 
-    server.get("/p/:id", (req, res) => {
-      const actualPage = "/post";
-      const queryParams = { title: req.params.id };
-      nextApp.render(req, res, actualPage, queryParams);
-    });
+    server.use(
+      "/api",
+      proxy("https://api.server.ru", {
+        proxyReqPathResolver(req: express.Request) {
+          return req.url.replace(/^\/api/, "");
+        }
+      })
+    );
 
     server.get("*", (req, res) => {
       return handle(req, res);
