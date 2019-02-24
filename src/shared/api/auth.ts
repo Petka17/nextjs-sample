@@ -1,5 +1,9 @@
 import axios from "axios";
-import * as _ from "jsonous";
+import Decoder, * as _ from "jsonous";
+import { succeed } from "jsonous";
+import { ok } from "resulty";
+
+const identity = new Decoder(ok);
 
 // TODO: write tests for different responses
 // TODO: Handle error case
@@ -11,28 +15,33 @@ const requestCode = async (phone: string) => {
 
   const parsedResult = _.succeed({})
     .assign("success", _.field("success", _.boolean))
-    .assign(
-      "data",
-      _.field(
-        "data",
-        _.succeed({})
-          .assign("external_id", _.field("external_id", _.string))
-          .assign("expires_in", _.field("expires_in", _.number))
-          .assign(
-            "timeout_expiration_block",
-            _.field("timeout_expiration_block", _.number)
-          )
-      )
-    )
+    .assign("data", _.field("data", identity))
     .decodeAny(response.data);
 
-  let result: string = "";
+  console.log(parsedResult);
+
+  let result: string = "no_result";
+
   parsedResult.cata({
     Ok: ({ data }) => {
-      result = data.external_id;
+      console.log(data);
+      const dataResult = succeed({})
+        .assign("external_id", _.field("external_id", _.string))
+        .decodeAny(data);
+
+      console.log(dataResult);
+
+      dataResult.cata({
+        Ok: ({ external_id }) => {
+          result = external_id;
+        },
+        Err: error => {
+          throw new Error("Parsing error " + error);
+        }
+      });
     },
     Err: error => {
-      throw new Error("Parsing error " + error);
+      throw new Error("Parsing error for initial message " + error);
     }
   });
 
