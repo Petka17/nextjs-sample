@@ -21,6 +21,7 @@
     "axios": "^0.18.0",
     "express": "4.16.4",
     "express-http-proxy": "^1.5.1",
+    "jsonous": "^3.3.1",
     "next": "8.0.1",
     "react": "16.8.2",
     "react-dom": "16.8.2"
