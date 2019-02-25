@@ -1,7 +1,7 @@
 import { DeepReadOnly } from "shared/state/common";
 import { clearPhone } from "shared/utils/string";
 
-import { Action } from "./action";
+import Action from "./action";
 
 /**
  * State

@@ -23,10 +23,10 @@ export class CodeRequestFail implements BaseAction {
   constructor(public errorMessage: string) {}
 }
 
-export type Action =
+type Action =
   | SetPhone
   | StartCodeRequest
   | CodeRequestSuccess
   | CodeRequestFail;
 
-// export default Action;
+export default Action;
