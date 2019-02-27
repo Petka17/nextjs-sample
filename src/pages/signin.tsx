@@ -9,7 +9,7 @@ function SigninPage() {
     setPhone,
     startCodeRequest,
     errorMessage
-  } = auth.getState();
+  } = auth.getContext();
 
   const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(event.target.value);

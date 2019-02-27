@@ -62,7 +62,7 @@ test("Signin page input should clear all non number character, apply formatting 
   expect(phoneInput.value).toBe(clearedPhone);
 });
 
-test("Signin page submit button should become enabled only if user fill correct phone", async () => {
+test("Signin page submit button should become enabled only if user fill correct phone", () => {
   const { getCodeButton, fillPhone } = renderPage();
 
   expect(getCodeButton).toBeDisabled();
@@ -98,7 +98,7 @@ test("If there are any errors in requesting code, the should be shown under the 
 
   mockRequestCode.mockReturnValueOnce(Promise.reject(errorMessage));
   fireEvent.click(getCodeButton);
-  wait(() => expect(getByText(errorMessage)).toBeInTheDocument());
+  await wait(() => expect(getByText(errorMessage)).toBeInTheDocument());
 
   fireEvent.click(getCodeButton);
   expect(queryByText(errorMessage)).toBeNull();

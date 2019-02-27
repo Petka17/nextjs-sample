@@ -69,4 +69,4 @@ export function Provider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const getState = () => React.useContext(ContextFactory);
+export const getContext = () => React.useContext(ContextFactory);
