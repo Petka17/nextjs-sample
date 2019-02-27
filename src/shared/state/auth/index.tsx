@@ -48,10 +48,11 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
     requestCode(phone)
       .then((resp: string) => {
-        console.log(`Response ${resp}`);
         dispatch(new CodeRequestSuccess(resp));
       })
-      .catch((err: string) => dispatch(new CodeRequestFail(err)));
+      .catch((err: Error) => {
+        dispatch(new CodeRequestFail(err.message));
+      });
   };
 
   const context: Context = {

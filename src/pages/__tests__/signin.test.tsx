@@ -93,13 +93,13 @@ test("When submit button is clicked, code request should fire and button should 
 });
 
 test("If there are any errors in requesting code, the should be shown under the input", async () => {
-  const errorMessage = "error";
+  const error = new Error("error");
   const { getCodeButton, getByText, queryByText } = renderPage("75551112233");
 
-  mockRequestCode.mockReturnValueOnce(Promise.reject(errorMessage));
+  mockRequestCode.mockReturnValueOnce(Promise.reject(error));
   fireEvent.click(getCodeButton);
-  await wait(() => expect(getByText(errorMessage)).toBeInTheDocument());
+  await wait(() => expect(getByText(error.message)).toBeInTheDocument());
 
   fireEvent.click(getCodeButton);
-  expect(queryByText(errorMessage)).toBeNull();
+  expect(queryByText(error.message)).toBeNull();
 });

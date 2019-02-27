@@ -1,7 +1,7 @@
 import { DeepReadOnly } from "shared/state/common";
 import { clearPhone } from "shared/utils/string";
 
-import Action from "./action";
+import { Action } from "./action";
 
 /**
  * State
@@ -49,6 +49,7 @@ export const reducer = (state: State, action: Action): State => {
         errorMessage: action.errorMessage
       };
     }
+    /* istanbul ignore next */
     default: {
       /* istanbul ignore next */
       const unreachableAction: never = action;

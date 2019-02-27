@@ -1,51 +1,61 @@
-import axios from "axios";
-import Decoder, * as _ from "jsonous";
+import axios, { AxiosError } from "axios";
+import * as _ from "jsonous";
 import { succeed } from "jsonous";
-import { ok } from "resulty";
-
-const identity = new Decoder(ok);
 
 export const createCodeRequestBody = (phone: string) => ({
-  phone,
-  profile_type: "employer"
+  phone
 });
 
 export const codeRequestUrl = "/api/login/request_code";
 
-// TODO: write tests for different responses
-// TODO: Handle error case
-export const requestCode = async (phone: string) => {
-  const response = await axios.post(
-    codeRequestUrl,
-    createCodeRequestBody(phone)
-  );
+// TODO: Refactor decoders
+export const requestCode = (phone: string) =>
+  axios
+    .post(codeRequestUrl, createCodeRequestBody(phone))
+    .then(response => {
+      const parsedResult = _.succeed({})
+        .assign("success", _.field("success", _.boolean))
+        .decodeAny(response.data);
 
-  const parsedResult = _.succeed({})
-    .assign("success", _.field("success", _.boolean))
-    .assign("data", _.field("data", identity))
-    .decodeAny(response.data);
+      let result: string = "no_result";
 
-  let result: string = "no_result";
+      parsedResult.cata({
+        Ok: ({ success }) => {
+          if (success) {
+            const dataResult = succeed({})
+              .assign("id", _.at(["data", "external_id"], _.string))
+              .decodeAny(response.data);
 
-  parsedResult.cata({
-    Ok: ({ data }) => {
-      const dataResult = succeed({})
-        .assign("external_id", _.field("external_id", _.string))
-        .decodeAny(data);
+            dataResult.cata({
+              Ok: ({ id }) => {
+                result = id;
+              },
+              Err: error => {
+                throw new Error("Parsing error " + error);
+              }
+            });
+          } else {
+            const errorResult = succeed({})
+              .assign("message", _.field("message", _.string))
+              .decodeAny(response.data);
 
-      dataResult.cata({
-        Ok: ({ external_id }) => {
-          result = external_id;
+            errorResult.cata({
+              Ok: ({ message }) => {
+                throw new Error(message);
+              },
+              Err: () => {
+                throw new Error("Unknown error");
+              }
+            });
+          }
         },
         Err: error => {
-          throw new Error("Parsing error " + error);
+          throw new Error("Parsing error for initial message " + error);
         }
       });
-    },
-    Err: error => {
-      throw new Error("Parsing error for initial message " + error);
-    }
-  });
 
-  return result;
-};
+      return result;
+    })
+    .catch((er: AxiosError) => {
+      throw new Error(er.message);
+    });
