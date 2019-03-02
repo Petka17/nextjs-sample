@@ -2,8 +2,11 @@ import axios, { AxiosResponse, AxiosError } from "axios";
 
 import { requestCode, createCodeRequestBody, codeRequestUrl } from "../auth";
 
-const createAxiosResponse = (data: object): AxiosResponse => ({
-  status: 200,
+const createAxiosResponse = (
+  data: object,
+  status: number = 200
+): AxiosResponse => ({
+  status,
   statusText: "OK",
   headers: [],
   config: {},
@@ -48,8 +51,15 @@ test("when http request for the new code failed then requestCode returns error m
   const message = "Server Error";
   const axiosError: AxiosError = {
     name: "",
-    message,
-    config: {}
+    message: "",
+    config: {},
+    response: {
+      config: {},
+      status: 500,
+      statusText: message,
+      headers: {},
+      data: {}
+    }
   };
 
   mockedPost.mockResolvedValue(Promise.reject(axiosError));
@@ -59,7 +69,6 @@ test("when http request for the new code failed then requestCode returns error m
       fail();
     })
     .catch(e => {
-      expect(e).toBeInstanceOf(Error);
       expect(e.message).toBe(message);
     });
 });
@@ -107,12 +116,12 @@ test("when http request for the new code succeed but the response is incorrect f
 
 test("when http request for the new code succeed but in the response success field equal false then requestCode should fail", async () => {
   mockedPost.mockResolvedValue(
-    Promise.resolve(
-      createAxiosResponse({
+    Promise.reject({
+      response: createAxiosResponse({
         message: "Пользователь не найден",
         success: false
       })
-    )
+    })
   );
 
   await requestCode("75551231212")
@@ -125,12 +134,12 @@ test("when http request for the new code succeed but in the response success fie
     });
 
   mockedPost.mockResolvedValue(
-    Promise.resolve(
-      createAxiosResponse({
+    Promise.reject({
+      response: createAxiosResponse({
         text: "Пользователь не найден",
         success: false
       })
-    )
+    })
   );
 
   await requestCode("75551231212")

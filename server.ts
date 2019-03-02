@@ -11,6 +11,24 @@ nextApp
   .then(() => {
     const server = express();
 
+    // server.use("/api/login/request_code", (_, req) => {
+    //   req.status(500);
+    //   req.statusMessage = "Error inside";
+    //   req.end();
+    // });
+
+    // server.use("/api/login/request_code", (_, req) => {
+    //   req.status(200);
+    //   req.json({
+    //     success: true,
+    //     data: {
+    //       expires_in: 300,
+    //       external_id: "sdgdsgsd",
+    //       timeout_expiration_block: 60
+    //     }
+    //   });
+    // });
+
     server.use(
       "/api",
       proxy("https://api.server.ru", {
