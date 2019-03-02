@@ -9,5 +9,5 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest"
   },
   collectCoverageFrom: ["**/src/**/*.{js,jsx,ts,tsx}"],
-  setupTestFrameworkScriptFile: "./rtl.setup.ts"
+  setupFilesAfterEnv: ["./rtl.setup.ts"]
 };
