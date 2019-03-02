@@ -23,8 +23,14 @@ export class CodeRequestFail implements BaseAction {
   constructor(public errorMessage: string) {}
 }
 
+export class SetCode implements BaseAction {
+  readonly type = "SET_CODE";
+  constructor(public code: string) {}
+}
+
 export type Action =
   | SetPhone
   | StartCodeRequest
   | CodeRequestSuccess
-  | CodeRequestFail;
+  | CodeRequestFail
+  | SetCode;

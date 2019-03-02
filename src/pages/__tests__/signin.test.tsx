@@ -4,25 +4,6 @@ import { fireEvent, render, wait } from "react-testing-library";
 import SigninPage from "../signin";
 import { requestCode } from "shared/api/auth";
 
-const renderPage = (phone = "") => {
-  const utils = render(<SigninPage />);
-  const phoneInput = utils.getByLabelText(/Телефон/) as HTMLInputElement;
-  const getCodeButton = utils.getByText(/Запросить код/) as HTMLButtonElement;
-
-  const fillPhone = (phone: string) => {
-    fireEvent.change(phoneInput, { target: { value: phone } });
-  };
-
-  if (phone !== "") fillPhone(phone);
-
-  return {
-    ...utils,
-    fillPhone,
-    phoneInput,
-    getCodeButton
-  };
-};
-
 jest.mock("shared/api/auth", () => {
   return {
     requestCode: jest.fn(
@@ -39,16 +20,37 @@ jest.mock("shared/api/auth", () => {
 
 const mockRequestCode: jest.Mock = requestCode as jest.Mock;
 
+const renderPage = (phone = "") => {
+  const utils = render(<SigninPage />);
+  const phoneInput = utils.getByLabelText(/Телефон/) as HTMLInputElement;
+  const requestCodeButton = utils.getByText(
+    /Запросить код/
+  ) as HTMLButtonElement;
+
+  const fillPhone = (phone: string) => {
+    fireEvent.change(phoneInput, { target: { value: phone } });
+  };
+
+  if (phone !== "") fillPhone(phone);
+
+  return {
+    ...utils,
+    fillPhone,
+    phoneInput,
+    requestCodeButton
+  };
+};
+
 afterEach(() => {
   mockRequestCode.mockClear();
 });
 
 test("Signin page should have phone input and submit button, and input should be focused", () => {
-  const { phoneInput, getCodeButton } = renderPage();
+  const { phoneInput, requestCodeButton } = renderPage();
 
   expect(phoneInput).toHaveAttribute("type", "tel");
   expect(phoneInput).toHaveFocus(); // not working properly
-  expect(getCodeButton).toBeDisabled();
+  expect(requestCodeButton).toBeDisabled();
 });
 
 test("Signin page input should clear all non number character, apply formatting and not allow more than 11 numbers", () => {
@@ -63,43 +65,74 @@ test("Signin page input should clear all non number character, apply formatting 
 });
 
 test("Signin page submit button should become enabled only if user fill correct phone", () => {
-  const { getCodeButton, fillPhone } = renderPage();
+  const { requestCodeButton, fillPhone } = renderPage();
 
-  expect(getCodeButton).toBeDisabled();
+  expect(requestCodeButton).toBeDisabled();
   fillPhone("7555111223");
-  expect(getCodeButton).toBeDisabled();
+  expect(requestCodeButton).toBeDisabled();
   fillPhone("75551112233");
-  expect(getCodeButton).toBeEnabled();
+  expect(requestCodeButton).toBeEnabled();
   fillPhone("75551112");
-  expect(getCodeButton).toBeDisabled();
+  expect(requestCodeButton).toBeDisabled();
   fillPhone("75551112233");
-  expect(getCodeButton).toBeEnabled();
+  expect(requestCodeButton).toBeEnabled();
 });
 
 test("When submit button is clicked, code request should fire and button should become disabled", async () => {
   const phone = "75551112233";
-  const { getCodeButton } = renderPage(phone);
+  const { requestCodeButton, getByLabelText } = renderPage(phone);
 
-  expect(getCodeButton).toBeEnabled();
+  expect(requestCodeButton).toBeEnabled();
 
-  fireEvent.click(getCodeButton);
+  fireEvent.click(requestCodeButton);
 
   expect(mockRequestCode).toBeCalledTimes(1);
   expect(mockRequestCode).toBeCalledWith(phone);
 
-  expect(getCodeButton).toBeDisabled();
+  expect(requestCodeButton).toBeDisabled();
 
-  await wait(() => expect(getCodeButton).toBeEnabled(), { timeout: 600 });
+  await wait(() => expect(getByLabelText(/Код/)).toBeInTheDocument(), {
+    timeout: 600
+  });
 });
 
 test("If there are any errors in requesting code, the should be shown under the input", async () => {
   const error = new Error("error");
-  const { getCodeButton, getByText, queryByText } = renderPage("75551112233");
+  const { requestCodeButton, getByText, queryByText } = renderPage(
+    "75551112233"
+  );
 
   mockRequestCode.mockReturnValueOnce(Promise.reject(error));
-  fireEvent.click(getCodeButton);
+  fireEvent.click(requestCodeButton);
   await wait(() => expect(getByText(error.message)).toBeInTheDocument());
 
-  fireEvent.click(getCodeButton);
+  expect(requestCodeButton).toBeEnabled();
+
+  fireEvent.click(requestCodeButton);
   expect(queryByText(error.message)).toBeNull();
+});
+
+test("When submit button is clicked and code request fire and code input should be editable", async () => {
+  const phone = "75551112233";
+  const code = "12jkn24332";
+  const clearCode = "1224";
+
+  const { requestCodeButton, getByLabelText, debug } = renderPage(phone);
+
+  mockRequestCode.mockResolvedValueOnce(Promise.resolve("auth_token"));
+
+  fireEvent.click(requestCodeButton);
+
+  await wait(() => expect(getByLabelText(/Код/)).toBeInTheDocument(), {
+    timeout: 600
+  });
+
+  const codeInput = getByLabelText(/Код/) as HTMLInputElement;
+
+  debug();
+
+  fireEvent.change(codeInput, { target: { value: code } });
+
+  debug();
+  expect(codeInput.value).toBe(clearCode);
 });

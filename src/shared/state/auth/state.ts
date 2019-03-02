@@ -1,5 +1,5 @@
 import { DeepReadOnly } from "shared/state/common";
-import { clearPhone } from "shared/utils/string";
+import { digitOnly } from "shared/utils/string";
 
 import { Action } from "./action";
 
@@ -10,12 +10,16 @@ type State = DeepReadOnly<{
   phone: string;
   isLoading: boolean;
   errorMessage: string;
+  codeInputFlag: boolean;
+  code: string;
 }>;
 
 export const initialState: State = {
   phone: "",
   isLoading: false,
-  errorMessage: ""
+  errorMessage: "",
+  codeInputFlag: false,
+  code: ""
 };
 
 /**
@@ -26,7 +30,7 @@ export const reducer = (state: State, action: Action): State => {
     case "SET_PHONE": {
       return {
         ...state,
-        phone: clearPhone(action.phone).slice(0, 11)
+        phone: digitOnly(action.phone).slice(0, 11)
       };
     }
     case "START_CODE_REQUEST": {
@@ -39,7 +43,8 @@ export const reducer = (state: State, action: Action): State => {
     case "CODE_REQUEST_SUCCESS": {
       return {
         ...state,
-        isLoading: false
+        isLoading: false,
+        codeInputFlag: true
       };
     }
     case "CODE_REQUEST_FAIL": {
@@ -47,6 +52,12 @@ export const reducer = (state: State, action: Action): State => {
         ...state,
         isLoading: false,
         errorMessage: action.errorMessage
+      };
+    }
+    case "SET_CODE": {
+      return {
+        ...state,
+        code: digitOnly(action.code).slice(0, 4)
       };
     }
     /* istanbul ignore next */

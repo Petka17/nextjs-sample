@@ -1,5 +1,5 @@
-function clearPhone(phone: string) {
+function digitOnly(phone: string) {
   return phone.replace(/\D/g, "");
 }
 
-export { clearPhone };
+export { digitOnly };

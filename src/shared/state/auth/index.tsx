@@ -5,7 +5,8 @@ import {
   CodeRequestFail,
   CodeRequestSuccess,
   SetPhone,
-  StartCodeRequest
+  StartCodeRequest,
+  SetCode
 } from "./action";
 import { initialState, reducer } from "./state";
 
@@ -18,6 +19,9 @@ interface Context {
   canStartCodeRequest: boolean;
   startCodeRequest: Function;
   errorMessage: string;
+  codeInputFlag: boolean;
+  code: string;
+  setCode: Function;
 }
 
 const defaultAuth: Context = {
@@ -25,7 +29,10 @@ const defaultAuth: Context = {
   setPhone: new Function(),
   canStartCodeRequest: false,
   startCodeRequest: new Function(),
-  errorMessage: initialState.errorMessage
+  errorMessage: initialState.errorMessage,
+  codeInputFlag: initialState.codeInputFlag,
+  code: initialState.code,
+  setCode: new Function()
 };
 
 const ContextFactory = React.createContext<Context>(defaultAuth);
@@ -34,10 +41,10 @@ const ContextFactory = React.createContext<Context>(defaultAuth);
  * Provider
  */
 export function Provider({ children }: { children: React.ReactNode }) {
-  const [{ phone, isLoading, errorMessage }, dispatch] = React.useReducer(
-    reducer,
-    initialState
-  );
+  const [
+    { phone, isLoading, errorMessage, codeInputFlag, code },
+    dispatch
+  ] = React.useReducer(reducer, initialState);
 
   const setPhone = (phone: string) => dispatch(new SetPhone(phone));
 
@@ -55,12 +62,19 @@ export function Provider({ children }: { children: React.ReactNode }) {
       });
   };
 
+  const setCode = (code: string) => {
+    dispatch(new SetCode(code));
+  };
+
   const context: Context = {
     phone,
     setPhone,
     canStartCodeRequest,
     startCodeRequest,
-    errorMessage
+    errorMessage,
+    codeInputFlag,
+    code,
+    setCode
   };
 
   return (

@@ -8,7 +8,10 @@ function SigninPage() {
     phone,
     setPhone,
     startCodeRequest,
-    errorMessage
+    errorMessage,
+    codeInputFlag,
+    code,
+    setCode
   } = auth.getContext();
 
   const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,20 +23,46 @@ function SigninPage() {
     startCodeRequest();
   };
 
+  const handleCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCode(event.target.value);
+  };
+
   return (
     <form onSubmit={handleSubmitForm}>
-      <label htmlFor="phone">Телефон</label>
-      <input
-        type="tel"
-        name="phone"
-        id="phone"
-        autoFocus
-        value={phone}
-        onChange={handlePhoneChange}
-      />
-      <button type="submit" disabled={!canStartCodeRequest}>
-        Запросить код
-      </button>
+      {codeInputFlag ? (
+        <React.Fragment>
+          <label key="label-code" htmlFor="code">
+            Код
+          </label>
+          <input
+            key="code"
+            type="tel"
+            name="code"
+            id="code"
+            autoFocus
+            value={code}
+            onChange={handleCodeChange}
+          />
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <label key="label-phone" htmlFor="phone">
+            Телефон
+          </label>
+          <input
+            key="phone"
+            type="tel"
+            name="phone"
+            id="phone"
+            autoFocus
+            value={phone}
+            onChange={handlePhoneChange}
+          />
+          <button type="submit" disabled={!canStartCodeRequest}>
+            Запросить код
+          </button>
+        </React.Fragment>
+      )}
       {errorMessage !== "" ? <div>{errorMessage}</div> : null}
     </form>
   );
