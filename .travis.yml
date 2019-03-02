@@ -11,4 +11,5 @@ cache:
 install:
   - yarn
 script:
-  - yarn test:coverall
+  - yarn test:coverage
+  - cat ./coverage/lcov.info | coveralls
