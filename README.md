@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.com/Petka17/nextjs-sample.svg?branch=master)](https://travis-ci.com/Petka17/nextjs-sample)
 [![Coverage Status](https://coveralls.io/repos/github/Petka17/nextjs-sample/badge.svg?branch=master)](https://coveralls.io/github/Petka17/nextjs-sample?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0873c99843256dc899e3/maintainability)](https://codeclimate.com/github/Petka17/nextjs-sample/maintainability)
 
 ## TODO List
 
