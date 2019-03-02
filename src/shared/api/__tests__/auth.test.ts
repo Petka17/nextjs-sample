@@ -1,6 +1,12 @@
 import axios, { AxiosResponse } from "axios";
+import { loginWithCode, loginWithCodeUrl } from "../auth";
 
-import { requestCode, createCodeRequestBody, codeRequestUrl } from "../auth";
+import {
+  requestCode,
+  createCodeRequestBody,
+  codeRequestUrl,
+  createLoginWithCodeBody
+} from "../auth";
 
 const createAxiosResponse = (
   data: object,
@@ -67,6 +73,65 @@ test("when http request for the new code succeed but in the response success fie
   );
 
   await requestCode("75551231212")
+    .then(() => {
+      fail();
+    })
+    .catch(e => {
+      expect(e).toBeInstanceOf(Error);
+      expect(e.message).toBe(message);
+    });
+});
+
+test("when http request for login with code succeed loginWith should return authToken", async () => {
+  const phone = "75551231212";
+  const code = "1234";
+  const requestBody = createLoginWithCodeBody(phone, code);
+  const externalId = "75c8e60e-7590-4a44-aed3-6898804bedaf";
+  const authToken = "secret_token";
+
+  mockedAxios.mockResolvedValue(
+    Promise.resolve(
+      createAxiosResponse({
+        success: true,
+        data: {
+          auth_token: authToken,
+          demo: false,
+          external_id: externalId
+        }
+      })
+    )
+  );
+
+  const response = await loginWithCode(phone, code);
+
+  expect(mockedAxios).toBeCalledTimes(1);
+  expect(mockedAxios).toBeCalledWith({
+    url: loginWithCodeUrl,
+    method: "post",
+    data: requestBody
+  });
+  expect(response).toBe(authToken);
+});
+
+test("when http request for the new code succeed but in the response success field equal false then requestCode should fail", async () => {
+  const phone = "75551231212";
+  const code = "1234";
+
+  const message = "Некорректно заполнены данные";
+  mockedAxios.mockResolvedValue(
+    Promise.reject({
+      response: createAxiosResponse(
+        {
+          message,
+          success: false
+        },
+        400,
+        "Bad Request"
+      )
+    })
+  );
+
+  await loginWithCode(phone, code)
     .then(() => {
       fail();
     })
