@@ -1,6 +1,7 @@
 # Sample React App with Next.js, Typescript, Jest, Hooks and Context API
 
 [![Build Status](https://travis-ci.com/Petka17/nextjs-sample.svg?branch=master)](https://travis-ci.com/Petka17/nextjs-sample)
+[![Coverage Status](https://coveralls.io/repos/github/Petka17/nextjs-sample/badge.svg?branch=master)](https://coveralls.io/github/Petka17/nextjs-sample?branch=master)
 
 ## TODO List
 
