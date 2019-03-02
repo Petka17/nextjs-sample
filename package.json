@@ -11,6 +11,7 @@
     "dev": "ts-node server.ts",
     "test": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:coverall": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "build": "NODE_ENV=production next build src && tsc --allowSyntheticDefaultImports --esModuleInterop --outDir build server.ts",
     "start": "NODE_ENV=production node build/server.js"
   },
@@ -35,6 +36,7 @@
     "@types/react-dom": "16.8.2",
     "@types/zeit__next-typescript": "^0.1.2",
     "babel-plugin-module-resolver": "^3.2.0",
+    "coveralls": "^3.0.3",
     "jest": "24.1.0",
     "jest-dom": "3.1.2",
     "react-testing-library": "6.0.0",
