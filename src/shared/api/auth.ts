@@ -10,23 +10,39 @@ export const codeRequestUrl = "/api/login/request_code";
 
 const successDecoder = _.succeed({}).assign(
   "success",
-  _.field("success", _.boolean)
+  _.at(["data", "success"], _.boolean)
 );
 
 const externalIdDecoder = _.succeed({}).assign(
   "id",
-  _.at(["data", "external_id"], _.string)
+  _.at(["data", "data", "external_id"], _.string)
 );
 
 const errorMessageDecoder = _.succeed({}).assign(
   "message",
-  _.field("message", _.string)
+  _.at(["data", "message"], _.string)
 );
 
 export const requestCode = (phone: string) =>
   axios
     .post(codeRequestUrl, createCodeRequestBody(phone))
-    .then(({ data }) =>
+    .catch((err: AxiosError) => {
+      const { response } = err;
+      const message = _.at(["data", "message"], _.string).decodeAny(response);
+
+      message.cata({
+        Ok: msg => {
+          throw new Error(msg);
+        },
+        Err: () => {
+          if (response && response.statusText) {
+            throw new Error(response.statusText);
+          }
+          throw new Error("Unknown error");
+        }
+      });
+    })
+    .then(data =>
       successDecoder
         .decodeAny(data)
         .mapError(err => `Parsing error for initial message: ${err}`)
@@ -52,21 +68,4 @@ export const requestCode = (phone: string) =>
         }
       });
       return id;
-    })
-    .catch((err: AxiosError) => {
-      console.log(err);
-      const { response } = err;
-      const message = _.at(["data", "message"], _.string).decodeAny(response);
-
-      message.cata({
-        Ok: msg => {
-          throw new Error(msg);
-        },
-        Err: () => {
-          if (response && response.statusText) {
-            throw new Error(response.statusText);
-          }
-          throw new Error("Unknown error");
-        }
-      });
     });
