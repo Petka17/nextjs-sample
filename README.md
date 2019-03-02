@@ -1,6 +1,10 @@
-# TODO List
+# Sample React App with Next.js, Typescript, Jest, Hooks and Context API
 
-Sync configuration (like type checking and module resolution paths) over different config files:
+[![Build Status](https://travis-ci.com/Petka17/nextjs-sample.svg?branch=master)](https://travis-ci.com/Petka17/nextjs-sample)
+
+## TODO List
+
+<input type="checkbox" /> Sync configuration (like type checking and module resolution paths) over different config files:
 
 - next.config.js
 - .babelrc
@@ -8,11 +12,12 @@ Sync configuration (like type checking and module resolution paths) over differe
 - package.json scripts
 - jest.config.js
 
-Make different jest configs for ui, state and api tests
+<input type="checkbox" /> Make different jest configs for ui, state and api tests
 
-Add material ui components
+<input type="checkbox" /> Add material ui components
 
-# Open questions
+<input type="checkbox" checked /> How to make proxy api requests using next?
 
-Why autofocus property doesn't work on run-time even though tests are passing?  
-How to make proxy api requests using next?
+<input type="checkbox" /> Why autofocus property doesn't work on run-time even though tests are passing?
+
+<input type="checkbox" /> Add husky for prettier and linting files
