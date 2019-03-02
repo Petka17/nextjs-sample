@@ -8,10 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "dev": "ts-node server.ts",
+    "dev": "nodemon",
     "test": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:coverall": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "build": "NODE_ENV=production next build src && tsc --allowSyntheticDefaultImports --esModuleInterop --outDir build server.ts",
     "start": "NODE_ENV=production node build/server.js"
   },
@@ -38,6 +37,7 @@
     "babel-plugin-module-resolver": "^3.2.0",
     "jest": "24.1.0",
     "jest-dom": "3.1.2",
+    "nodemon": "^1.18.10",
     "react-testing-library": "6.0.0",
     "ts-jest": "24.0.0",
     "ts-node": "8.0.2",

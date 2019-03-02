@@ -23,7 +23,7 @@ nextApp
     //     success: true,
     //     data: {
     //       expires_in: 300,
-    //       external_id: "sdgdsgsd",
+    //       external_id: "some_id",
     //       timeout_expiration_block: 60
     //     }
     //   });
