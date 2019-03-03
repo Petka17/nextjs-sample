@@ -11,7 +11,8 @@ function SigninPage() {
     errorMessage,
     codeInputFlag,
     code,
-    setCode
+    setCode,
+    isLoading
   } = auth.getContext();
 
   const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +43,7 @@ function SigninPage() {
             autoFocus
             value={code}
             onChange={handleCodeChange}
+            disabled={isLoading}
           />
         </React.Fragment>
       ) : (

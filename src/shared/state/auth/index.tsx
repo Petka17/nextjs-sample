@@ -1,14 +1,18 @@
 import React from "react";
-import { requestCode } from "shared/api/auth";
+import { requestCode, loginWithCode } from "shared/api/auth";
+
+import { initialState, reducer, PHONE_LENGTH, CODE_LENGTH } from "./state";
 
 import {
-  CodeRequestFail,
-  CodeRequestSuccess,
   SetPhone,
   StartCodeRequest,
-  SetCode
+  CodeRequestSuccess,
+  CodeRequestFail,
+  SetCode,
+  StartLoginWithCode,
+  LoginWithCodeSuccess,
+  LoginWithCodeFail
 } from "./action";
-import { initialState, reducer } from "./state";
 
 /**
  * Context for React Component
@@ -22,6 +26,7 @@ interface Context {
   codeInputFlag: boolean;
   code: string;
   setCode: Function;
+  isLoading: boolean;
 }
 
 const defaultAuth: Context = {
@@ -32,7 +37,8 @@ const defaultAuth: Context = {
   errorMessage: initialState.errorMessage,
   codeInputFlag: initialState.codeInputFlag,
   code: initialState.code,
-  setCode: new Function()
+  setCode: new Function(),
+  isLoading: initialState.isLoading
 };
 
 const ContextFactory = React.createContext<Context>(defaultAuth);
@@ -48,7 +54,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
 
   const setPhone = (phone: string) => dispatch(new SetPhone(phone));
 
-  const canStartCodeRequest = phone.length === 11 && !isLoading;
+  const canStartCodeRequest = phone.length === PHONE_LENGTH && !isLoading;
 
   const startCodeRequest = () => {
     dispatch(new StartCodeRequest());
@@ -66,6 +72,20 @@ export function Provider({ children }: { children: React.ReactNode }) {
     dispatch(new SetCode(code));
   };
 
+  React.useEffect(() => {
+    if (code.length === CODE_LENGTH) {
+      dispatch(new StartLoginWithCode());
+
+      loginWithCode(phone, code)
+        .then(() => {
+          dispatch(new LoginWithCodeSuccess());
+        })
+        .catch((err: Error) => {
+          dispatch(new LoginWithCodeFail(err.message));
+        });
+    }
+  }, [code]);
+
   const context: Context = {
     phone,
     setPhone,
@@ -74,7 +94,8 @@ export function Provider({ children }: { children: React.ReactNode }) {
     errorMessage,
     codeInputFlag,
     code,
-    setCode
+    setCode,
+    isLoading
   };
 
   return (

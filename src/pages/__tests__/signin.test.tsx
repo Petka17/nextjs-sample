@@ -2,23 +2,33 @@ import React from "react";
 import { fireEvent, render, wait } from "react-testing-library";
 
 import SigninPage from "../signin";
-import { requestCode } from "shared/api/auth";
+import { requestCode, loginWithCode } from "shared/api/auth";
 
 jest.mock("shared/api/auth", () => {
   return {
     requestCode: jest.fn(
       () =>
         new Promise((resolve, _) => {
+          const timer = setTimeout(() => {
+            clearTimeout(timer);
+            resolve("auth_token");
+          }, 100);
+        })
+    ),
+    loginWithCode: jest.fn(
+      () =>
+        new Promise((resolve, _) => {
           let wait = setTimeout(() => {
             clearTimeout(wait);
             resolve("auth_token");
-          }, 500);
+          }, 100);
         })
     )
   };
 });
 
 const mockRequestCode: jest.Mock = requestCode as jest.Mock;
+const mockLoginWithCode: jest.Mock = loginWithCode as jest.Mock;
 
 const renderPage = (phone = "") => {
   const utils = render(<SigninPage />);
@@ -92,7 +102,7 @@ test("When submit button is clicked, code request should fire and button should 
   expect(requestCodeButton).toBeDisabled();
 
   await wait(() => expect(getByLabelText(/Код/)).toBeInTheDocument(), {
-    timeout: 600
+    timeout: 150
   });
 });
 
@@ -104,35 +114,64 @@ test("If there are any errors in requesting code, the should be shown under the 
 
   mockRequestCode.mockReturnValueOnce(Promise.reject(error));
   fireEvent.click(requestCodeButton);
-  await wait(() => expect(getByText(error.message)).toBeInTheDocument());
+  await wait(() => expect(getByText(error.message)).toBeInTheDocument(), {
+    timeout: 150
+  });
 
   expect(requestCodeButton).toBeEnabled();
 
   fireEvent.click(requestCodeButton);
   expect(queryByText(error.message)).toBeNull();
 });
-
 test("When submit button is clicked and code request fire and code input should be editable", async () => {
   const phone = "75551112233";
   const code = "12jkn24332";
   const clearCode = "1224";
+  const correctCode = "1234";
+  const error = new Error("Incorrect code");
 
-  const { requestCodeButton, getByLabelText, debug } = renderPage(phone);
-
-  mockRequestCode.mockResolvedValueOnce(Promise.resolve("auth_token"));
+  const {
+    requestCodeButton,
+    getByLabelText,
+    getByText,
+    queryByText
+  } = renderPage(phone);
 
   fireEvent.click(requestCodeButton);
 
   await wait(() => expect(getByLabelText(/Код/)).toBeInTheDocument(), {
-    timeout: 600
+    timeout: 150
   });
 
   const codeInput = getByLabelText(/Код/) as HTMLInputElement;
 
-  debug();
-
+  mockLoginWithCode.mockReturnValueOnce(Promise.reject(error));
   fireEvent.change(codeInput, { target: { value: code } });
 
-  debug();
   expect(codeInput.value).toBe(clearCode);
+  expect(mockLoginWithCode).toBeCalledTimes(1);
+  expect(mockLoginWithCode).toBeCalledWith(phone, clearCode);
+
+  await wait(() => expect(getByText(error.message)).toBeInTheDocument(), {
+    timeout: 100
+  });
+
+  mockLoginWithCode.mockClear();
+
+  fireEvent.change(codeInput, { target: { value: "" } });
+  fireEvent.change(codeInput, { target: { value: correctCode } });
+
+  expect(mockLoginWithCode).toBeCalledTimes(1);
+  expect(mockLoginWithCode).toBeCalledWith(phone, correctCode);
+
+  await wait(() => expect(codeInput).toBeDisabled(), { timeout: 50 });
+  await wait(
+    () => {
+      expect(queryByText(error.message)).toBeNull();
+      expect(codeInput).toBeEnabled();
+    },
+    {
+      timeout: 150
+    }
+  );
 });

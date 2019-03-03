@@ -28,9 +28,27 @@ export class SetCode implements BaseAction {
   constructor(public code: string) {}
 }
 
+export class StartLoginWithCode implements BaseAction {
+  readonly type = "START_LOGIN_WITH_CODE";
+  constructor() {}
+}
+
+export class LoginWithCodeSuccess implements BaseAction {
+  readonly type = "LOGIN_WITH_CODE_SUCCESS";
+  constructor() {}
+}
+
+export class LoginWithCodeFail implements BaseAction {
+  readonly type = "LOGIN_WITH_CODE_FAIL";
+  constructor(public errorMessage: string) {}
+}
+
 export type Action =
   | SetPhone
   | StartCodeRequest
   | CodeRequestSuccess
   | CodeRequestFail
-  | SetCode;
+  | SetCode
+  | StartLoginWithCode
+  | LoginWithCodeSuccess
+  | LoginWithCodeFail;
