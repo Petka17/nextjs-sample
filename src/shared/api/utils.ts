@@ -52,13 +52,14 @@ export const responseDecoder: Decoder<DecodedResponse> = _.succeed({})
   .assign("responseData", _.maybe(_.field("data", responseDataDecoder)))
   .assign("statusText", _.maybe(_.field("statusText", _.string)));
 
-export const makeRequest = async (
+export const makeRequest = async <T>(
   url: string = "/",
   method: string = "get",
   body: any = null,
-  resultDecoder?: Decoder<any>
-) => {
-  let result: any = null;
+  resultDecoder: Decoder<T>,
+  defaultValue: T
+): Promise<T> => {
+  let result: T = defaultValue;
   let errorText = "";
 
   try {
@@ -67,9 +68,11 @@ export const makeRequest = async (
     responseDataDecoder.decodeAny(responseData).cata({
       Ok: responseData => {
         if (responseData.success) {
-          if (resultDecoder) {
-            [result, errorText] = getData(resultDecoder, responseData);
-          }
+          [result, errorText] = getData(
+            resultDecoder,
+            responseData,
+            defaultValue
+          );
         } else {
           errorText = getErrorFromMessage(responseData);
         }
@@ -89,11 +92,12 @@ export const makeRequest = async (
   return result;
 };
 
-const getData = (
-  resultDecoder: Decoder<any>,
-  responseData: DecodedResponseData
-) => {
-  let result: any = null;
+const getData = <T>(
+  resultDecoder: Decoder<T>,
+  responseData: DecodedResponseData,
+  defaultValue: T
+): [T, string] => {
+  let result: T = defaultValue;
   let errorText = "";
 
   responseData.data.cata({
