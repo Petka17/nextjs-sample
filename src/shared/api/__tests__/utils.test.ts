@@ -64,7 +64,7 @@ const createAxiosError = (response: AxiosResponse): AxiosError => ({
 });
 
 const makeRequestErrorCheck = async (msg: string | RegExp) => {
-  await makeRequest()
+  await makeRequest("/", "post", {}, _.string, "")
     .then(() => {
       fail("It should fail");
     })

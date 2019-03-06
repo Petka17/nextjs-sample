@@ -1,10 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Router from "next/router";
 import * as _ from "jsonous";
 
 const getUserForToken = (): Promise<string> =>
   new Promise((resolve, _) => {
+    console.log("run promise");
     setTimeout(() => {
+      console.log("resolve promise");
       resolve("some_external_id");
     }, 1000);
   });
@@ -17,7 +19,7 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(true);
   const [externalId, setExternalId] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     getUserForToken()
       .then((externalId: string) => {
         setIsLoading(false);
@@ -32,9 +34,9 @@ export function PrivateRoute({ children }: { children: React.ReactNode }) {
   }, []);
 
   return isLoading ? (
-    <div>isLoading...</div>
+    <div>Loading...</div>
   ) : externalId === null ? (
-    <div>Redirect...</div>
+    <div>Redirecting to signin...</div>
   ) : (
     <ContextFactory.Provider value={externalId}>
       {children}

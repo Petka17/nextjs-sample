@@ -15,7 +15,8 @@ export const requestCode = (phone: string) =>
     codeRequestUrl,
     "post",
     createCodeRequestBody(phone),
-    _.field("external_id", _.string)
+    _.field("external_id", _.string),
+    ""
   );
 
 /**
@@ -34,5 +35,6 @@ export const loginWithCode = (phone: string, code: string) =>
     loginWithCodeUrl,
     "post",
     createLoginWithCodeBody(phone, code),
-    _.field("auth_token", _.string)
+    _.field("auth_token", _.string),
+    ""
   );
