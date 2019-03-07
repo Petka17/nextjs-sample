@@ -138,7 +138,7 @@ test("Process error response should return error message", async () => {
   mockedAxios.mockResolvedValueOnce(
     Promise.resolve(createAxiosResponse({ success: true }))
   );
-  await makeRequest("/", "post", {}, _.string)
+  await makeRequest("/", "post", {}, _.string, "")
     .then(() => {
       fail();
     })
@@ -153,7 +153,7 @@ test("Process success case", async () => {
     Promise.resolve(createAxiosResponse({ success: true, data: { field } }))
   );
 
-  await makeRequest("/", "post", {}, _.field("field", _.string))
+  await makeRequest("/", "post", {}, _.field("field", _.string), "")
     .then(result => {
       expect(result).toBe(field);
     })
@@ -161,7 +161,7 @@ test("Process success case", async () => {
       fail(`makeRequest failed with error: ${e}`);
     });
 
-  await makeRequest("/", "post", {}, _.field("field", _.number))
+  await makeRequest("/", "post", {}, _.field("field", _.number), 0)
     .then(() => {
       fail();
     })
