@@ -1,9 +1,18 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Decoder, * as _ from "jsonous";
 import { Maybe } from "maybeasy";
-import { ok } from "resulty";
+import { ok, err } from "resulty";
 
+/**
+ * Custom Decoders
+ */
 const identity = new Decoder(v => ok(v));
+const trueVal = new Decoder<true>(v =>
+  v === true ? ok<string, true>(true) : err("expected true value")
+);
+const falseVal = new Decoder<false>(v =>
+  v === false ? ok<string, false>(false) : err("expected false value")
+);
 
 /**
  * {
@@ -12,168 +21,106 @@ const identity = new Decoder(v => ok(v));
  *      "field": "value"
  *    }
  * }
- *
+ */
+type DecodedSucceedResponseData = {
+  success: true;
+  data: Maybe<any>;
+};
+
+type DecodeResult = [DecodedSucceedResponseData | null, string];
+
+export const succeedResponseDecoder: Decoder<
+  DecodedSucceedResponseData
+> = _.succeed({})
+  .assign("success", _.field("success", trueVal))
+  .assign("data", _.maybe(_.field("data", identity)));
+
+/**
  * {
  *    "success": false,
  *    "message": "Error test"
  * }
  */
-type DecodedResponseData = {
-  success: boolean;
-} & {
-  data: Maybe<any>;
-} & {
-  errorMessage: Maybe<string>;
+type DecodedFailedResponseData = {
+  success: false;
+  errorMessage: string;
 };
 
-export const responseDataDecoder: Decoder<DecodedResponseData> = _.succeed({})
-  .assign("success", _.field("success", _.boolean))
-  .assign("data", _.maybe(_.field("data", identity)))
-  .assign("errorMessage", _.maybe(_.field("message", _.string)));
+type DecodeFailedResult = [DecodedFailedResponseData | null, string];
 
-/**
- * {
- *    "response": {
- *      "statusText": "Some test",
- *      "data": {
- *        "success": false,
- *        "message": "Error text"
- *      }
- *    }
- * }
- */
-type DecodedResponse = {
-  responseData: Maybe<DecodedResponseData>;
-} & {
-  statusText: Maybe<string>;
-};
-
-export const responseDecoder: Decoder<DecodedResponse> = _.succeed({})
-  .assign("responseData", _.maybe(_.field("data", responseDataDecoder)))
-  .assign("statusText", _.maybe(_.field("statusText", _.string)));
+export const failedResponseDecoder: Decoder<
+  DecodedFailedResponseData
+> = _.succeed({})
+  .assign("success", _.field("success", falseVal))
+  .assign("errorMessage", _.field("message", _.string));
 
 export const makeRequest = async <T>(
-  url: string = "/",
-  method: string = "get",
-  body: any = null,
-  resultDecoder: Decoder<T>,
-  defaultValue: T
+  url: string,
+  method: string,
+  body: any,
+  serverDataDecoder: Decoder<T>
 ): Promise<T> => {
-  let result: T = defaultValue;
-  let errorText = "";
+  const [serverData, errorMessage] = await makeAndDecodeResponse(
+    url,
+    method,
+    body
+  );
 
-  try {
-    const { data: responseData } = await axios({ url, method, data: body });
-
-    responseDataDecoder.decodeAny(responseData).cata({
-      Ok: responseData => {
-        if (responseData.success) {
-          [result, errorText] = getData(
-            resultDecoder,
-            responseData,
-            defaultValue
-          );
-        } else {
-          errorText = getErrorFromMessage(responseData);
-        }
-      },
-      Err: msg => {
-        errorText = `Successful response decoder failed: ${msg}`;
-      }
-    });
-  } catch ({ response: errorResponse }) {
-    errorText = processAxiosError(errorResponse);
+  if (errorMessage !== "" || serverData === null) {
+    throw new Error(errorMessage);
   }
 
-  if (errorText !== "") {
-    throw new Error(errorText);
+  const data = serverData.data.cata<T | null>({
+    Just: val => val,
+    Nothing: () => null
+  });
+
+  const [result, decodeErrorMessage] = serverDataDecoder
+    .decodeAny(data)
+    .cata<[T | null, string]>({
+      Ok: val => [val, ""],
+      Err: msg => [null, msg]
+    });
+
+  if (decodeErrorMessage !== "" || result === null) {
+    throw new Error(`Server data decoder failed: ${decodeErrorMessage}`);
   }
 
   return result;
 };
 
-const getData = <T>(
-  resultDecoder: Decoder<T>,
-  responseData: DecodedResponseData,
-  defaultValue: T
-): [T, string] => {
-  let result: T = defaultValue;
-  let errorText = "";
+const makeAndDecodeResponse = async (
+  url: string,
+  method: string,
+  body: any
+): Promise<DecodeResult> => {
+  try {
+    const { data: responseData } = await axios({ url, method, data: body });
 
-  responseData.data.cata({
-    Just: data => {
-      resultDecoder.decodeAny(data).cata({
-        Ok: responseResult => {
-          result = responseResult;
-        },
-        Err: msg => {
-          errorText = `Result decoder failed: ${msg}`;
-        }
+    return succeedResponseDecoder.decodeAny(responseData).cata<DecodeResult>({
+      Ok: val => [val, ""],
+      Err: msg => [null, `Successful response decoder failed: ${msg}`]
+    });
+  } catch (axiosError) {
+    if (!axiosError.response) {
+      return [null, "Unknown server error"];
+    }
+
+    const {
+      response: { data, statusText }
+    }: AxiosError = axiosError;
+
+    const [serverData] = failedResponseDecoder
+      .decodeAny(data)
+      .cata<DecodeFailedResult>({
+        Ok: val => [val, ""],
+        Err: msg => [null, msg]
       });
-    },
-    Nothing: () => {
-      errorText = "No data received";
+
+    if (serverData) {
+      return [null, serverData.errorMessage];
     }
-  });
 
-  return [result, errorText];
-};
-
-const getErrorFromMessage = (responseData: DecodedResponseData) => {
-  let errorText = "";
-
-  responseData.errorMessage.cata({
-    Just: errorMessage => {
-      errorText = errorMessage;
-    },
-    Nothing: () => {
-      errorText = "There was unknown issue on the server";
-    }
-  });
-
-  return errorText;
-};
-
-const processAxiosError = (errorResponse: any) => {
-  let errorText = "";
-
-  responseDecoder.decodeAny(errorResponse).cata({
-    Ok: response => {
-      response.responseData.cata({
-        Just: responseData => {
-          responseData.errorMessage.cata({
-            Just: errorMessage => {
-              errorText = errorMessage;
-            },
-            Nothing: () => {
-              errorText = getErrorFromStatus(response);
-            }
-          });
-        },
-        Nothing: () => {
-          errorText = getErrorFromStatus(response);
-        }
-      });
-    },
-    Err: /* istanbul ignore next */ msg => {
-      errorText = `Error response decoder failed: ${msg}`;
-    }
-  });
-
-  return errorText;
-};
-
-const getErrorFromStatus = (response: DecodedResponse) => {
-  let errorText = "";
-
-  response.statusText.cata({
-    Just: statusText => {
-      errorText = statusText;
-    },
-    Nothing: () => {
-      errorText = "Unknown server error";
-    }
-  });
-
-  return errorText;
+    return [null, statusText];
+  }
 };

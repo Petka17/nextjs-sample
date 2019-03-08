@@ -2,14 +2,7 @@ import React from "react";
 import Router from "next/router";
 import * as _ from "jsonous";
 
-const getUserForToken = (): Promise<string> =>
-  new Promise((resolve, _) => {
-    console.log("run promise");
-    setTimeout(() => {
-      console.log("resolve promise");
-      resolve("some_external_id");
-    }, 1000);
-  });
+import { getUserForToken } from "shared/api/auth";
 
 const defaultAuth: string = "";
 

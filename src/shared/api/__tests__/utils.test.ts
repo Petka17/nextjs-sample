@@ -1,10 +1,10 @@
 import Result from "resulty/Result";
-import { Nothing, Just } from "maybeasy";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { Just } from "maybeasy";
+import axios, { AxiosResponse, AxiosError } from "axios";
 import * as _ from "jsonous";
 
 import { makeRequest } from "../utils";
-import { responseDataDecoder } from "../utils";
+import { succeedResponseDecoder } from "../utils";
 
 jest.mock("axios");
 
@@ -16,7 +16,7 @@ afterEach(() => {
 
 test("Decode data in response should work properly", () => {
   const exampleData = { a: 1 };
-  const result = responseDataDecoder.decodeAny({
+  const result = succeedResponseDecoder.decodeAny({
     success: true,
     data: exampleData
   });
@@ -27,7 +27,6 @@ test("Decode data in response should work properly", () => {
     Ok: responseData => {
       expect(responseData.success).toBe(true);
       expect(responseData.data).toBeInstanceOf(Just);
-      expect(responseData.errorMessage).toBeInstanceOf(Nothing);
 
       responseData.data.cata({
         Just: data => {
@@ -64,7 +63,7 @@ const createAxiosError = (response: AxiosResponse): AxiosError => ({
 });
 
 const makeRequestErrorCheck = async (msg: string | RegExp) => {
-  await makeRequest("/", "post", {}, _.string, "")
+  await makeRequest("/", "post", {}, _.string)
     .then(() => {
       fail("It should fail");
     })
@@ -82,8 +81,8 @@ test("Process error response should return error message", async () => {
   const statusText = "Error on the server";
   const message = "Something went wrong";
 
-  // No data, no status
-  mockedAxios.mockResolvedValueOnce(Promise.reject({ response: {} }));
+  // No response
+  mockedAxios.mockResolvedValueOnce(Promise.reject({}));
   await makeRequestErrorCheck(unknownError);
 
   // No data, but status
@@ -91,12 +90,6 @@ test("Process error response should return error message", async () => {
     Promise.reject(createAxiosError(createAxiosResponse({}, 500, statusText)))
   );
   await makeRequestErrorCheck(statusText);
-
-  // No message in data and no status
-  mockedAxios.mockResolvedValueOnce(
-    Promise.reject({ response: { status: 400, data: { success: true } } })
-  );
-  await makeRequestErrorCheck(unknownError);
 
   // No message in data, but status
   mockedAxios.mockResolvedValueOnce(
@@ -115,10 +108,6 @@ test("Process error response should return error message", async () => {
     )
   );
   await makeRequestErrorCheck(message);
-});
-
-test("Process error response should return error message", async () => {
-  const message = "Something went wrong";
 
   mockedAxios.mockResolvedValueOnce(
     Promise.resolve(createAxiosResponse({ success: "false" }))
@@ -128,32 +117,39 @@ test("Process error response should return error message", async () => {
   mockedAxios.mockResolvedValueOnce(
     Promise.resolve(createAxiosResponse({ success: false }))
   );
-  await makeRequestErrorCheck("There was unknown issue on the server");
+  await makeRequestErrorCheck(/Successful response decoder failed/);
 
   mockedAxios.mockResolvedValueOnce(
     Promise.resolve(createAxiosResponse({ success: false, message }))
   );
-  await makeRequestErrorCheck(message);
+  await makeRequestErrorCheck(/Successful response decoder failed/);
 
   mockedAxios.mockResolvedValueOnce(
     Promise.resolve(createAxiosResponse({ success: true }))
   );
-  await makeRequest("/", "post", {}, _.string, "")
-    .then(() => {
-      fail();
-    })
-    .catch(e => {
-      expect(e.message).toBe("No data received");
-    });
+  await makeRequestErrorCheck(/Server data decoder failed/);
 });
 
 test("Process success case", async () => {
   const field = "value";
+
+  // mockedAxios.mockResolvedValue(
+  //   Promise.resolve(createAxiosResponse({ success: true }))
+  // );
+
+  // await makeRequest("/", "post", {}, new Decoder(() => ok(null)))
+  //   .then((result: any) => {
+  //     expect(result).toBeNull();
+  //   })
+  //   .catch(e => {
+  //     fail(`makeRequest failed with error: ${e}`);
+  //   });
+
   mockedAxios.mockResolvedValue(
     Promise.resolve(createAxiosResponse({ success: true, data: { field } }))
   );
 
-  await makeRequest("/", "post", {}, _.field("field", _.string), "")
+  await makeRequest("/", "post", {}, _.field("field", _.string))
     .then(result => {
       expect(result).toBe(field);
     })
@@ -161,11 +157,13 @@ test("Process success case", async () => {
       fail(`makeRequest failed with error: ${e}`);
     });
 
-  await makeRequest("/", "post", {}, _.field("field", _.number), 0)
+  await makeRequest("/", "post", {}, _.field("field", _.number))
     .then(() => {
       fail();
     })
     .catch(e => {
-      expect(e.message).toEqual(expect.stringMatching(/Result decoder failed/));
+      expect(e.message).toEqual(
+        expect.stringMatching(/Server data decoder failed/)
+      );
     });
 });
