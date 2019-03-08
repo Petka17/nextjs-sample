@@ -11,3 +11,10 @@ export type DeepReadOnly<T> = T extends (infer E)[][]
   : T extends object
   ? DeepReadOnlyObject<T>
   : T;
+
+export class UnreachableError extends Error {
+  /* istanbul ignore next */ constructor(val: never, message: string) {
+    super(`TypeScript thought we could never end up here\n${message}`);
+    console.error(val);
+  }
+}

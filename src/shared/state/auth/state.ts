@@ -1,4 +1,4 @@
-import { DeepReadOnly } from "shared/state/common";
+import { DeepReadOnly, UnreachableError } from "shared/state/common";
 import { digitOnly } from "shared/utils/string";
 
 import { Action } from "./action";
@@ -83,12 +83,9 @@ export const reducer = (state: State, action: Action): State => {
         errorMessage: action.errorMessage
       };
     }
-    /* istanbul ignore next */
-    default: {
-      /* istanbul ignore next */
-      const unreachableAction: never = action;
-      /* istanbul ignore next */
-      return unreachableAction;
+    default: /* istanbul ignore next */ {
+      new UnreachableError(action, "Not all actions checked");
+      return state;
     }
   }
 };

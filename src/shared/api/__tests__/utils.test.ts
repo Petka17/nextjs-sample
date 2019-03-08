@@ -198,15 +198,7 @@ test("Resolve with data which is not comply with decoder", async () => {
     Promise.resolve(createAxiosResponse({ success: true, data: { field } }))
   );
 
-  await makeRequest("/", "post", {}, _.string)
-    .then(() => {
-      fail("Decode should fail");
-    })
-    .catch(e => {
-      expect(e.message).toEqual(
-        expect.stringMatching(/expected to find a string/)
-      );
-    });
+  await makeRequestErrorCheck(/expected to find a string/);
 });
 
 /**
@@ -220,15 +212,7 @@ test("Resolve with null data and it is not expected", async () => {
     Promise.resolve(createAxiosResponse({ success: true }))
   );
 
-  await makeRequest("/", "post", {}, _.string)
-    .then(() => {
-      fail("Decode should fail");
-    })
-    .catch(e => {
-      expect(e.message).toEqual(
-        expect.stringMatching(/expected to find a string/)
-      );
-    });
+  await makeRequestErrorCheck(/expected to find a string/);
 });
 
 /**
