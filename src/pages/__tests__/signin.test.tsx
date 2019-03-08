@@ -2,11 +2,11 @@ import React from "react";
 import { fireEvent, render, wait } from "react-testing-library";
 
 import SigninPage from "../signin";
-import { requestCode, loginWithCode } from "shared/api/auth";
+import { codeRequest, loginWithCode } from "shared/api/auth";
 
 jest.mock("shared/api/auth", () => {
   return {
-    requestCode: jest.fn(
+    codeRequest: jest.fn(
       () =>
         new Promise((resolve, _) => {
           const timer = setTimeout(() => {
@@ -27,7 +27,7 @@ jest.mock("shared/api/auth", () => {
   };
 });
 
-const mockRequestCode: jest.Mock = requestCode as jest.Mock;
+const mockCodeRequest: jest.Mock = codeRequest as jest.Mock;
 const mockLoginWithCode: jest.Mock = loginWithCode as jest.Mock;
 
 const renderPage = (phone = "") => {
@@ -52,7 +52,7 @@ const renderPage = (phone = "") => {
 };
 
 afterEach(() => {
-  mockRequestCode.mockClear();
+  mockCodeRequest.mockClear();
 });
 
 test("Signin page should have phone input and submit button, and input should be focused", () => {
@@ -96,8 +96,8 @@ test("When submit button is clicked, code request should fire and button should 
 
   fireEvent.click(requestCodeButton);
 
-  expect(mockRequestCode).toBeCalledTimes(1);
-  expect(mockRequestCode).toBeCalledWith(phone);
+  expect(mockCodeRequest).toBeCalledTimes(1);
+  expect(mockCodeRequest).toBeCalledWith(phone);
 
   expect(requestCodeButton).toBeDisabled();
 
@@ -112,7 +112,7 @@ test("If there are any errors in requesting code, the should be shown under the 
     "75551112233"
   );
 
-  mockRequestCode.mockReturnValueOnce(Promise.reject(error));
+  mockCodeRequest.mockReturnValueOnce(Promise.reject(error));
   fireEvent.click(requestCodeButton);
   await wait(() => expect(getByText(error.message)).toBeInTheDocument(), {
     timeout: 150

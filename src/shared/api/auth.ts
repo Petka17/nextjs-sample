@@ -10,12 +10,14 @@ export const createCodeRequestBody = (phone: string) => ({
   phone
 });
 
-export const requestCode = (phone: string) =>
+export const codeRequestDecoder = _.field("external_id", _.string);
+
+export const codeRequest = (phone: string) =>
   makeRequest(
     codeRequestUrl,
     "post",
     createCodeRequestBody(phone),
-    _.field("external_id", _.string)
+    codeRequestDecoder
   );
 
 /**

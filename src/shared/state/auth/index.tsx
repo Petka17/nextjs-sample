@@ -1,5 +1,5 @@
 import React from "react";
-import { requestCode, loginWithCode } from "shared/api/auth";
+import { codeRequest, loginWithCode } from "shared/api/auth";
 
 import { initialState, reducer, PHONE_LENGTH, CODE_LENGTH } from "./state";
 
@@ -59,7 +59,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
   const startCodeRequest = () => {
     dispatch(new StartCodeRequest());
 
-    requestCode(phone)
+    codeRequest(phone)
       .then((resp: string) => {
         dispatch(new CodeRequestSuccess(resp));
       })

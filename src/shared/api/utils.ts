@@ -54,40 +54,52 @@ export const failedResponseDecoder: Decoder<
   .assign("success", _.field("success", falseVal))
   .assign("errorMessage", _.field("message", _.string));
 
-export const makeRequest = async <T>(
+export function makeRequest<T>(
   url: string,
   method: string,
   body: any,
   serverDataDecoder: Decoder<T>
-): Promise<T> => {
-  const [serverData, errorMessage] = await makeAndDecodeResponse(
+): Promise<T>;
+export function makeRequest(
+  url: string,
+  method: string,
+  body: any
+): Promise<void>;
+export async function makeRequest<T>(
+  url: string,
+  method: string,
+  body: any,
+  serverDataDecoder?: Decoder<T>
+): Promise<T | void> {
+  const [maybeServerData, errorMessage] = await makeAndDecodeResponse(
     url,
     method,
     body
   );
 
-  if (errorMessage !== "" || serverData === null) {
+  if (errorMessage !== "" || maybeServerData === null) {
     throw new Error(errorMessage);
   }
 
-  const data = serverData.data.cata<T | null>({
-    Just: val => val,
-    Nothing: () => null
-  });
+  if (!serverDataDecoder) {
+    return;
+  }
 
-  const [result, decodeErrorMessage] = serverDataDecoder
-    .decodeAny(data)
+  const serverData = maybeServerData.data.getOrElseValue(null);
+
+  const [data, decodeError] = serverDataDecoder
+    .decodeAny(serverData)
     .cata<[T | null, string]>({
       Ok: val => [val, ""],
       Err: msg => [null, msg]
     });
 
-  if (decodeErrorMessage !== "" || result === null) {
-    throw new Error(`Server data decoder failed: ${decodeErrorMessage}`);
+  if (decodeError !== "" || data === null) {
+    throw new Error(`Server data decoder failed: ${decodeError}`);
   }
 
-  return result;
-};
+  return data;
+}
 
 const makeAndDecodeResponse = async (
   url: string,

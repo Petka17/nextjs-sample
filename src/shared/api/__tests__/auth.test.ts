@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { loginWithCode, loginWithCodeUrl } from "../auth";
 
 import {
-  requestCode,
+  codeRequest,
   createCodeRequestBody,
   codeRequestUrl,
   createLoginWithCodeBody
@@ -46,7 +46,7 @@ test("when http request for new code succeed requestCode should return external 
     )
   );
 
-  const response = await requestCode(phone);
+  const response = await codeRequest(phone);
 
   expect(mockedAxios).toBeCalledTimes(1);
   expect(mockedAxios).toBeCalledWith({
@@ -72,7 +72,7 @@ test("when http request for the new code succeed but in the response success fie
     })
   );
 
-  await requestCode("75551231212")
+  await codeRequest("75551231212")
     .then(() => {
       fail();
     })
