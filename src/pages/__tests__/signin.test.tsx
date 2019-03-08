@@ -123,6 +123,7 @@ test("If there are any errors in requesting code, the should be shown under the 
   fireEvent.click(requestCodeButton);
   expect(queryByText(error.message)).toBeNull();
 });
+
 test("When submit button is clicked and code request fire and code input should be editable", async () => {
   const phone = "75551112233";
   const code = "12jkn24332";
